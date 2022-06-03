@@ -5,14 +5,9 @@ metadata:
   labels:
     app: signalrchat-app
 spec:
-  host: signalrchat-app-signal-app-uat.apps.cluster-dp894.dp894.sandbox29.opentlc.com
+  path: /
   to:
     kind: Service
-    name: signalrchat-git
-    weight: 100
+    name: signalrchat-app
   port:
     targetPort: 8080-tcp
-  tls:
-    termination: edge
-    insecureEdgeTerminationPolicy: Redirect
-  wildcardPolicy: None
