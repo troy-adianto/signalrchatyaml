@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: signalrchat-app
-          image: image-registry.openshift-image-registry.svc:5000/signalrchat-app-pipeline/signalrchat:v1.0.0
+          image: image-registry.openshift-image-registry.svc:5000/signalrchat-app-pipeline/signalrchat:v1.1.0
           ports:
             - containerPort: 5000
               protocol: TCP
