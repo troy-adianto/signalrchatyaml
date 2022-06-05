@@ -5,8 +5,14 @@ metadata:
   labels:
     app: signalrchat-app
 spec:
-  replicas: 1
-  template:
+ replicas: 1
+ selector:
+   matchLabels:
+     app: signalrchat-app
+ template:
+    metadata:
+      labels:
+        app: signalrchat-app
     spec:
       containers:
         - name: signalrchat-app
