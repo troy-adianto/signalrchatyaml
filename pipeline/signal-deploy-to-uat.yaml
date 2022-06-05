@@ -1,0 +1,130 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: signalrchat-deploy-to-uat
+  namespace: signal-app
+spec:
+  params:
+    - name: version
+      type: string
+    - default: signalrchat-app-uat
+      name: namespace
+      type: string
+    - default: signalrchat-app
+      name: deployment-name
+      type: string
+    - default: signalrchat-app-pipeline/signalrchat
+      name: Image
+      type: string
+    - default: latest
+      name: ImageTag
+      type: string
+    - default: >-
+        https://troy-adianto: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@github.com/troy-adianto/signalrchatyaml.git
+      name: manifest-git-url
+      type: string
+  tasks:
+    - name: tag-image
+      params:
+        - name: SCRIPT
+          value: >-
+            oc tag $(params.Image):$(params.ImageTag)
+            $(params.Image):$(params.version)-rc
+        - name: VERSION
+          value: latest
+      runAfter:
+        - git-clone
+      taskRef:
+        kind: ClusterTask
+        name: openshift-client
+    - name: git-clone
+      params:
+        - name: url
+          value: $(params.manifest-git-url)
+        - name: revision
+          value: main
+        - name: submodules
+          value: 'true'
+        - name: depth
+          value: '1'
+        - name: sslVerify
+          value: 'true'
+        - name: deleteExisting
+          value: 'true'
+        - name: verbose
+          value: 'true'
+        - name: gitInitImage
+          value: >-
+            gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/git-init:v0.29.0
+        - name: userHome
+          value: /tekton/home
+      taskRef:
+        kind: ClusterTask
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+    - name: apply-manifests
+      params:
+        - name: manifest_dir
+          value: manifest/uat
+        - name: namespace
+          value: $(params.namespace)
+      runAfter:
+        - update-manifest
+      taskRef:
+        kind: Task
+        name: apply-manifests
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+    - name: update-manifest
+      params:
+        - name: BASE_IMAGE
+          value: >-
+            docker.io/alpine/git:v2.26.2@sha256:23618034b0be9205d9cc0846eb711b12ba4c9b468efdd8a59aac1d7b1a23363f
+        - name: GIT_SCRIPT
+          value: >-
+            sed -i "s/signalrchat:.*/signalrchat:$(params.version)-rc/g"
+            manifest/uat/signalrchat-deployment.yaml
+
+            cat manifest/uat/signalrchat-deployment.yaml
+        - name: USER_HOME
+          value: /root
+        - name: VERBOSE
+          value: 'true'
+      runAfter:
+        - tag-image
+      taskRef:
+        kind: ClusterTask
+        name: git-cli
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+    - name: git-push
+      params:
+        - name: BASE_IMAGE
+          value: >-
+            docker.io/alpine/git:v2.26.2@sha256:23618034b0be9205d9cc0846eb711b12ba4c9b468efdd8a59aac1d7b1a23363f
+        - name: GIT_USER_NAME
+          value: troy adianto
+        - name: GIT_USER_EMAIL
+          value: troy.adianto@gmail.com
+        - name: GIT_SCRIPT
+          value: |
+            git commit -a -m "update deployment manifest"
+            git push origin HEAD:main --force
+        - name: USER_HOME
+          value: /root
+        - name: VERBOSE
+          value: 'true'
+      runAfter:
+        - apply-manifests
+      taskRef:
+        kind: ClusterTask
+        name: git-cli
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+  workspaces:
+    - name: shared-workspace

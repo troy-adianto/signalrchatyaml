@@ -10,4 +10,4 @@ spec:
     kind: Service
     name: signalrchat-app
   port:
-    targetPort: 8080-tcp
+    targetPort: 5000-tcp

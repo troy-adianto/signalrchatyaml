@@ -1,0 +1,19 @@
+kind: Project
+apiVersion: project.openshift.io/v1
+metadata:
+  name: signalrchat-app-pipeline
+---
+kind: Project
+apiVersion: project.openshift.io/v1
+metadata:
+  name: signalrchat-app-dev
+---
+kind: Project
+apiVersion: project.openshift.io/v1
+metadata:
+  name: signalrchat-app-uat
+---
+kind: Project
+apiVersion: project.openshift.io/v1
+metadata:
+  name: signalrchat-app-prod
