@@ -18,5 +18,5 @@ spec:
         - name: signalrchat-app
           image: image-registry.openshift-image-registry.svc:5000/signalrchat-app-pipeline/signalrchat:v1.0.0
           ports:
-            - containerPort: 8080
+            - containerPort: 5000
               protocol: TCP
