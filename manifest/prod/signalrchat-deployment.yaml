@@ -4,7 +4,7 @@ metadata:
   name: signalrchat-app
   labels:
     app: signalrchat-app
-    ver: 1.4.0-rc
+    ver: 1.4.0
 spec:
  replicas: 1
  selector:
