@@ -4,7 +4,7 @@ metadata:
   name: signalrchat-app
   labels:
     app: signalrchat-app
-    ver: 1.3.0
+    ver: 1.4.0-rc
 spec:
  replicas: 1
  selector:
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: signalrchat-app
-          image: image-registry.openshift-image-registry.svc:5000/signalrchat-app-pipeline/signalrchat:v1.3.0
+          image: image-registry.openshift-image-registry.svc:5000/signalrchat-app-pipeline/signalrchat:1.4.0
           ports:
             - containerPort: 5000
               protocol: TCP
