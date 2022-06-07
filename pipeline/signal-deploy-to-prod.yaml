@@ -85,6 +85,9 @@ spec:
             sed -i "s/signalrchat:.*/signalrchat:$(params.version)/g"
             manifest/prod/signalrchat-deployment.yaml
 
+            sed -i "s/ver:.*/ver: $(params.version)/g"
+            manifest/prod/signalrchat-deployment.yaml
+            
             cat manifest/prod/signalrchat-deployment.yaml
         - name: USER_HOME
           value: /root

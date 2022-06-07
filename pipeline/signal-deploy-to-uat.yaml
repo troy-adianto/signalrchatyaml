@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
   name: signalrchat-deploy-to-uat
-  namespace: signal-app
+  namespace: signalrchat-app-pipeline
 spec:
   params:
     - name: version
@@ -86,6 +86,9 @@ spec:
         - name: GIT_SCRIPT
           value: >-
             sed -i "s/signalrchat:.*/signalrchat:$(params.version)-rc/g"
+            manifest/uat/signalrchat-deployment.yaml
+            
+            sed -i "s/ver:.*/ver: $(params.version)-rc/g"
             manifest/uat/signalrchat-deployment.yaml
 
             cat manifest/uat/signalrchat-deployment.yaml
