@@ -28,3 +28,7 @@ OCP DevOps Demo
 9. Login and configure Kibana
      - Create index pattern & log view (show container name & messages)
 10. Configure Github Webhook
+
+#TODO
+-Add ACS Steps
+-Add GitOps
