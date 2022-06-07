@@ -138,3 +138,110 @@ spec:
   workspaces:
     - name: workspace
     - name: sonar-setting
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: trigger-template-signalrchat-build-and-deploy-to-dev
+  namespace: signalrchat-app-pipeline
+spec:
+  params:
+    - name: git-revision
+    - name: git-commit-message
+    - name: git-repo-url
+    - name: git-repo-name
+    - name: content-type
+    - name: pusher-name
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        annotations:
+          pipeline.openshift.io/started-by: opentlc-mgr
+        generateName: signalrchat-build-and-deploy-to-dev-
+        labels:
+          tekton.dev/pipeline: signalrchat-build-and-deploy-to-dev
+        namespace: signalrchat-app-pipeline
+      spec:
+        params:
+          - name: APP_NAME
+            value: signalrchat-app
+          - name: GIT_REPO
+            value: 'https://github.com/troy-adianto/signalrchat.git'
+          - name: GIT_REVISION
+            value: main
+          - name: IMAGE_NAME
+            value: >-
+              image-registry.openshift-image-registry.svc:5000/signalrchat-app-pipeline/signalrchat
+          - name: PATH_CONTEXT
+            value: .
+          - name: VERSION
+            value: 5.0-ubi8
+          - name: MANIFEST_REPO
+            value: 'https://github.com/troy-adianto/signalrchatyaml.git'
+          - name: NAMESPACE
+            value: signalrchat-app-dev
+        pipelineRef:
+          name: signalrchat-build-and-deploy-to-dev
+        workspaces:
+          - name: workspace
+            volumeClaimTemplate:
+              spec:
+                accessModes:
+                  - ReadWriteOnce
+                resources:
+                  requests:
+                    storage: 1Gi
+                storageClassName: gp2
+                volumeMode: Filesystem
+          - emptyDir: {}
+            name: sonar-setting
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: signal-build-and-deploy-event-listener
+  namespace: signalrchat-app-pipeline
+spec:
+  namespaceSelector: {}
+  resources: {}
+  serviceAccountName: pipeline
+  triggers:
+    - bindings:
+        - kind: ClusterTriggerBinding
+          ref: github-push
+      template:
+        ref: trigger-template-signalrchat-build-and-deploy-to-dev
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: signal-build-and-deploy-event-listener
+  namespace: signalrchat-app-pipeline
+spec:
+  ports:
+    - name: http-listener
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+    - name: http-metrics
+      protocol: TCP
+      port: 9000
+      targetPort: 9000
+  internalTrafficPolicy: Cluster
+  type: ClusterIP
+  selector:
+    eventlistener: signal-build-and-deploy-event-listener
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: signal-build-and-deploy-event-listener
+  namespace: signalrchat-app-pipeline
+spec:
+  to:
+    kind: Service
+    name: signal-build-and-deploy-event-listener
+    weight: 100
+  port:
+    targetPort: 8080
